@@ -1,5 +1,4 @@
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:razorpay_flutter/razorpay_flutter.dart';
@@ -13,94 +12,120 @@ class paymentpage extends StatefulWidget {
 }
 
 class _paymentpageState extends State<paymentpage> {
-  //List<dynamic> paymentlist = [];
   Map<String, dynamic>? paymentlist;
   late Razorpay _razorpay;
 
-  Future<void> fetchamount(String phone) async {
-    final uri = Uri.parse('https://cpsgtinst.org/app/due.php?ph=$phone');
-    try {
-      final responce = await http.get(uri);
+  // ================= FETCH DUE =================
+  Future<void> fetchAmount() async {
+    final uri =
+        Uri.parse('https://cpsgtinst.org/app/due.php?ph=${widget.phone}');
+    final res = await http.get(uri);
+    if (res.statusCode == 200) {
+      final data = jsonDecode(res.body);
+      setState(() => paymentlist = data['stock'][0]);
+      print("💰 Paying amount: ${paymentlist!['due']} rupees");
+print("📝 User: ${paymentlist!['name']}, Phone: ${widget.phone}");
 
-      if (responce.statusCode == 200) {
-        final data = jsonDecode(responce.body);
-        setState(() {
-          paymentlist = data['stock'][0];
-        });
-        print('Amount fetched successfully');
-      } else {
-        print('Failed to fetch amount with status: ${responce.statusCode}');
-      }
-    } catch (e) {
-      print('Error fetching amount: $e');
     }
   }
 
-  void openRazorpay(int amount, String name) {
-    var options = {
-      'key': 'rzp_live_JlDOXuPCT5TpID', // 🔴 Your Razorpay Key
-      'amount': amount * 100, // rupees → paise
-      'name': 'CPSI Payment',
-      'description': name,
-      'prefill': {'contact': widget.phone},
-    };
+  // ================= OPEN RAZORPAY =================
 
-    _razorpay.open(options);
-  }
+ // var orderId = "ORD_${DateTime.now().millisecondsSinceEpoch}";
+void openRazorpay(String orderId, int amount, String name, String email, String contact) {
+  var options = {
+    'key':'rzp_live_JlDOXuPCT5TpID', // LIVE key
+    'amount': amount * 100, // rupees → paise
+    'currency': 'INR',
+    'name': 'Calcutta Police Sergeant\'s Institute',
+    'description': 'Payment for Order #$orderId',
+   // 'order_id': orderId, // 🔥 MUST for server verification
+    'prefill': {
+      'email': email,
+      'contact': contact,
+    },
+  };
 
-  // 🔹 PAYMENT SUCCESS
+  _razorpay.open(options);
+}
+
+
+  // ================= SUCCESS =================
   void _handlePaymentSuccess(PaymentSuccessResponse response) {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(const SnackBar(content: Text("Payment Successful")));
-
-    // 🔹 UPDATE SERVER
     updatePaymentStatus(
-      response.paymentId!,
-      response.orderId,
+      response.paymentId,
+      null,
       response.signature,
       "success",
     );
+  print("Payment ID: ${response.paymentId}");
+  print("Order ID: ${response.orderId}");
+  print("Signature: ${response.signature}");
+  
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("Payment Successful")),
+    );
   }
 
-  // 🔹 PAYMENT FAILED
+  // ================= FAILED =================
   void _handlePaymentError(PaymentFailureResponse response) {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(const SnackBar(content: Text("Payment Failed")));
-
     updatePaymentStatus(null, null, null, "failed");
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("Payment Failed")),
+    );
   }
 
-  // 🔹 UPDATE SERVER API
-  Future<void> updatePaymentStatus(
-    String? paymentId,
-    String? orderId,
-    String? signature,
-    String status,
-  ) async {
-    final uri = Uri.parse('https://cpsgtinst.org/app/update_payment.php');
+  // ================= UPDATE SERVER =================
+Future<void> updatePaymentStatus(
+  String? paymentId,
+  String? orderId,
+  String? signature,
+  String status,
+) async {
+  final uri = Uri.parse('https://cpsgtinst.org/app/payment_insert.php');
+  final body = jsonEncode({
+    'payment_id': paymentId,
+    'mem_id': paymentlist!['mem_id'],
+    'amount': paymentlist!['due'], // make sure this matches the server
+    'name': paymentlist!['name'],
+    'ph': paymentlist!['ph'],
+    'email': paymentlist!['email'] ?? '',
+    'status': status,
+    'order_id': orderId ?? 'NO_ORDER', // send something non-empty
+  });
 
-    await http.post(
+  print("🔹 Sending payment update to server:");
+  print("URL: $uri");
+  print("Body: $body");
+
+  try {
+    final res = await http.post(
       uri,
       headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({
-        'phone': widget.phone,
-        'payment_id': paymentId,
-        'order_id': orderId,
-        'signature': signature,
-        'status': status,
-      }),
+      body: body,
     );
 
-    fetchamount(widget.phone); // refresh list
+    print("🔹 Server response status: ${res.statusCode}");
+    print("🔹 Server response body: ${res.body}");
+
+    if (res.statusCode == 200) {
+      print("✅ Payment update successful!");
+      fetchAmount(); // refresh UI
+    } else {
+      print("❌ Payment update failed!");
+    }
+  } catch (e) {
+    print("⚠️ Error updating payment: $e");
   }
+}
+
+
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
-    fetchamount(widget.phone);
+    fetchAmount();
     _razorpay = Razorpay();
     _razorpay.on(Razorpay.EVENT_PAYMENT_SUCCESS, _handlePaymentSuccess);
     _razorpay.on(Razorpay.EVENT_PAYMENT_ERROR, _handlePaymentError);
@@ -108,151 +133,91 @@ class _paymentpageState extends State<paymentpage> {
 
   @override
   void dispose() {
-    // TODO: implement dispose
-    super.dispose();
     _razorpay.clear();
+    super.dispose();
   }
 
-@override
-Widget build(BuildContext context) {
-  return Scaffold(
-    appBar: AppBar(
-      title: const Text("Payment Details",style: TextStyle(
-        color: Colors.white
-      ),),centerTitle: true,
-      backgroundColor: const Color(0xFF0D3B66),
-    ),
-    body: paymentlist == null
-        ? const Center(child: CircularProgressIndicator())
-        : Padding(
-            padding: const EdgeInsets.all(16),
-            child: Card(
-              elevation: 6,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    // 🔹 HEADER
-                    Row(
-                      children: const [
-                        Icon(Icons.receipt_long,
-                            color: Color(0xFF0D3B66)),
-                        SizedBox(width: 8),
+  // ================= UI =================
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text("Payment Details",
+            style: TextStyle(color: Colors.white)),
+        backgroundColor: const Color(0xFF0D3B66),
+        centerTitle: true,
+      ),
+      body: paymentlist == null
+          ? const Center(child: CircularProgressIndicator())
+          : Padding(
+              padding: const EdgeInsets.all(16),
+              child: Center(
+                child: Card(
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16)),
+                  child: Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: Column(
+                     
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        infoRow("Name", paymentlist!['name']),
+                        infoRow("Member ID", paymentlist!['mem_id']),
+                        infoRow("Phone", paymentlist!['ph']),
+                        const SizedBox(height: 16),
                         Text(
-                          "Payment Summary",
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
+                          "₹ ${paymentlist!['due']}",
+                          style: const TextStyle(
+                              fontSize: 28,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.red),
+                        ),
+                        const SizedBox(height: 24),
+                        SizedBox(
+                          width: double.infinity,
+                          height: 48,
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF0D3B66),
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(30)),
+                            ),
+                          onPressed: () {
+                  openRazorpay(
+                    "NO_ORDER", // or real orderId if generated from server
+                    int.parse(paymentlist!['due']), // amount
+                    paymentlist!['name'],           // name/description
+                    paymentlist!['email'] ?? '',    // email
+                    paymentlist!['ph'],             // contact
+                  );
+                },
+                
+                            child: const Text("PAY NOW",
+                                style: TextStyle(
+                                    color: Colors.white, fontSize: 16)),
                           ),
                         )
                       ],
                     ),
-
-                    const Divider(height: 30),
-
-                    // 🔹 DETAILS
-                    _infoRow("Name", paymentlist!['name']),
-                    _infoRow("Member ID", paymentlist!['mem_id']),
-                    _infoRow("Phone", paymentlist!['ph']),
-
-                    const SizedBox(height: 16),
-
-                    // 🔹 DUE AMOUNT
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(14),
-                      decoration: BoxDecoration(
-                        color: Colors.red.shade50,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.red),
-                      ),
-                      child: Column(
-                        children: [
-                          const Text(
-                            "Due Amount",
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: Colors.red,
-                            ),
-                          ),
-                          const SizedBox(height: 6),
-                          Text(
-                            "₹ ${paymentlist!['due']}",
-                            style: const TextStyle(
-                              fontSize: 26,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.red,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    const SizedBox(height: 24),
-
-                    // 🔹 PAY BUTTON
-                    SizedBox(
-                      width: double.infinity,
-                      height: 48,
-                      child: ElevatedButton.icon(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF0D3B66),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(30),
-                          ),
-                        ),
-                        icon: const Icon(Icons.payments_outlined),
-                        label: const Text(
-                          "PAY NOW",
-                          style: TextStyle(
-                            letterSpacing: 1,
-                            fontSize: 16,
-                            color: Colors.white
-                          ),
-                        ),
-                        onPressed: () {
-                          openRazorpay(
-                            int.parse(paymentlist!['due']),
-                            paymentlist!['name'],
-                          );
-                        },
-                      ),
-                    )
-                  ],
+                  ),
                 ),
               ),
             ),
-          ),
-  );
-}
-Widget _infoRow(String title, String value) {
-  return Padding(
-    padding: const EdgeInsets.symmetric(vertical: 6),
-    child: Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(
-          title,
-          style: const TextStyle(
-            fontSize: 14,
-            color: Colors.grey,
-          ),
-        ),
-        Text(
-          value,
-          style: const TextStyle(
-            fontSize: 15,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-      ],
-    ),
-  );
-}
+    );
+  }
 
+  Widget infoRow(String t, String v) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(t, style: const TextStyle(color: Colors.grey)),
+          Text(v,
+              style:
+                  const TextStyle(fontWeight: FontWeight.w600, fontSize: 15)),
+        ],
+      ),
+    );
+  }
 }

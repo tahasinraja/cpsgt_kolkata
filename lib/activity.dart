@@ -10,16 +10,31 @@ class ActivityPage extends StatefulWidget {
 
 class _ActivityPageState extends State<ActivityPage> {
   final List<Map<String, dynamic>> sportsList = [
-    {"name": "Kabaddi", "icon": Icons.sports_kabaddi},
-    {"name": "Basketball", "icon": Icons.sports_basketball},
-    {"name": "Volleyball", "icon": Icons.sports_volleyball},
-    {"name": "Hockey", "icon": Icons.sports_hockey},
-    {"name": "Billiards", "icon": Icons.sports},
-    {"name": "Athletic", "icon": Icons.directions_run},
-    {"name": "Handball", "icon": Icons.sports_handball},
-    {"name": "Rugby", "icon": Icons.sports_rugby},
-    {"name": "Football", "icon": Icons.sports_soccer},
-    {"name": "Cricket", "icon": Icons.sports_cricket},
+    {"name":"Archery","icon":Icons.sports_score},
+    {"name":"Athletic", "icon": Icons.directions_run},
+    {"name":"Basketball", "icon": Icons.sports_basketball},
+    {"name":"Billiards", "icon": Icons.sports},
+    {"name":"Chess","icon":Icons.sports_esports},
+    {"name":"Combat","icon":Icons.sports_mma},
+    {"name":"Cricket", "icon": Icons.sports_cricket},
+    {"name":"Football", "icon": Icons.sports_soccer},
+    {"name":"Hockey", "icon": Icons.sports_hockey},
+    {"name":"Handball", "icon": Icons.sports_handball},
+    {"name":"Kabaddi", "icon": Icons.sports_kabaddi},
+    {"name":"Rowing","icon":Icons.rowing},
+    {"name":"Rugby", "icon": Icons.sports_rugby},
+    {"name":"Volleyball", "icon": Icons.sports_volleyball},
+    
+    
+    
+    
+    
+   
+   
+    
+   
+    
+    
   ];
 
   @override

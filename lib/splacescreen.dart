@@ -2,7 +2,8 @@ import 'dart:async';
 
 
 
-import 'package:calcutta_psapp/login.dart';
+
+import 'package:calcutta_psapp/otploginpage.dart';
 
 import 'package:flutter/material.dart';
 
@@ -21,7 +22,7 @@ class _SplacescreenState extends State<Splacescreen> {
     Timer(Duration(seconds: 2), () {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => LoginPage()),
+        MaterialPageRoute(builder: (context) =>sendotppage()),
       );
     });
   }

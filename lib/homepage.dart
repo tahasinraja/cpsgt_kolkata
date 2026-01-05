@@ -1,10 +1,19 @@
 import 'package:calcutta_psapp/Gallery.dart';
 import 'package:calcutta_psapp/activity.dart';
+import 'package:calcutta_psapp/annoucmentpage.dart';
 import 'package:calcutta_psapp/executivecment.dart';
-import 'package:calcutta_psapp/holyday.dart';
+
+
+import 'package:calcutta_psapp/memberfacilitiespage.dart';
+import 'package:calcutta_psapp/otploginpage.dart';
 import 'package:calcutta_psapp/payment.dart';
+import 'package:calcutta_psapp/webacademy.dart';
+import 'package:calcutta_psapp/webachivement.dart';
+import 'package:calcutta_psapp/webarchive.dart';
+import 'package:calcutta_psapp/webcultural_activities.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class HomePage extends StatefulWidget {
   final String phone;
@@ -16,9 +25,12 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   final List<String> banners = [
-    'lib/assets/images/banner.jpg',
-    'lib/assets/images/banner.jpg',
-    'lib/assets/images/banner.jpg',
+    'lib/assets/images/20250119_105618.jpg',
+    'lib/assets/images/20250119_105634.jpg',
+    'lib/assets/images/IMG-20251230-WA0019.jpg',
+    'lib/assets/images/IMG-20251230-WA0020.jpg',
+    'lib/assets/images/IMG-20251230-WA0021(1).jpg',
+    'lib/assets/images/IMG-20251230-WA0022.jpg',
   ];
   @override
   Widget build(BuildContext context) {
@@ -28,28 +40,33 @@ class _HomePageState extends State<HomePage> {
       // 🔷 APP BAR
       appBar: AppBar(
   backgroundColor: const Color(0xFF0D3B66),
-  centerTitle: true,
   title: Row(
+    mainAxisAlignment: MainAxisAlignment.center,
     children: [
-      Image.asset(
-        'lib/assets/images/cpsgts.png',
-        height: 34,
-      ),
+      Image.asset('lib/assets/images/cpsgts.png', height: 34),
       const SizedBox(width: 8),
-
-      Expanded(
-        child: Text(
-          "Calcutta Police Sergeants' Institute & Police Athletic Club",
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
-          textAlign: TextAlign.center,
-          style: const TextStyle(
-            fontSize: 16, // AppBar ke liye 14 better
-            color: Colors.white,
-            fontWeight: FontWeight.w500,
-          ),
+      const Text(
+        "UNMESH CPSI & PAC",
+        maxLines: 2,
+        overflow: TextOverflow.ellipsis,
+        style: TextStyle(
+          fontSize: 16,
+          color: Colors.white,
+          fontWeight: FontWeight.w500,
         ),
       ),
+      const Spacer(), 
+          IconButton(
+              onPressed: () async {
+                final prefs = await SharedPreferences.getInstance();
+                prefs.clear();
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (context) => sendotppage()),
+                );
+              },
+              icon: Icon(Icons.logout_outlined, color: Colors.red),
+            ),// Left aur right balance ke liye
     ],
   ),
 ),
@@ -59,24 +76,30 @@ class _HomePageState extends State<HomePage> {
       body: SingleChildScrollView(
         child: Column(
           children: [
+            SizedBox(height: 20,),
             // 🔷 IMAGE BANNER
             Container(
               child: CarouselSlider(
                 items: banners.map((banner) {
-                  return Builder(
-                    builder: (BuildContext context) {
-                      return Image.asset(
-                        banner,
-                        width: double.infinity,
-                        height: 200,
-                        fit: BoxFit.cover,
-                      );
-                    },
+                  return ClipRRect(
+                    borderRadius: BorderRadius.circular(15),
+                    child: Builder(
+                      builder: (BuildContext context) {
+                        return Image.asset(
+                          banner,
+                          width: double.infinity,
+                          height: 200,
+                          fit: BoxFit.cover,
+                        );
+                      },
+                    ),
                   );
                 }).toList(),
                 options: CarouselOptions(
-                  height: 200,
+                  height: 220,
                   autoPlay: true,
+                  enlargeCenterPage: true,
+                   viewportFraction: 1.0,
                   autoPlayInterval: const Duration(seconds: 3),
                   autoPlayAnimationDuration: const Duration(milliseconds: 800),
                 ),
@@ -116,10 +139,15 @@ class _HomePageState extends State<HomePage> {
                   ),
                   HomeMenu(
                     onTap: () {
-                      // Handle tap for PAYMENT
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => webachivementpage(),
+                        ),
+                      );
                     },
                     icon: Icons.handshake,
-                    text: "PAYMENT",
+                    text: "ACHIVEMENT",
                     color: Colors.blue,
                   ),
                   HomeMenu(
@@ -133,23 +161,30 @@ class _HomePageState extends State<HomePage> {
                       );
                     },
                     icon: Icons.pending_actions,
-                    text: "PENDING PAYMENT",
+                    text: "PAYMENT",
                     color: Colors.grey,
                   ),
                   HomeMenu(
                     onTap: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => HolydayPage()),
+                        MaterialPageRoute(
+                          builder: (context) => facilitespage(),
+                        ),
                       );
                     },
                     icon: Icons.home,
-                    text: "HOLIDAY INN",
+                    text: "MEMBER FACILITIES",
                     color: Colors.pink,
                   ),
                   HomeMenu(
                     onTap: () {
-                      // Handle tap for ANNOUNCEMENTS
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => Annoucmentpage(),
+                        ),
+                      );
                     },
                     icon: Icons.campaign,
                     text: "ANNOUNCEMENTS",
@@ -166,6 +201,43 @@ class _HomePageState extends State<HomePage> {
                     text: "GALLERY",
                     color: Colors.green,
                   ),
+                  HomeMenu(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => webcalcuralpage(),
+                        ),
+                      );
+                    },
+                    icon: Icons.local_activity,
+                    text: "CULTURAL ACTIVITY",
+                    color: Colors.grey,
+                  ),
+                  HomeMenu(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => webacademy()),
+                      );
+                    },
+                    icon: Icons.school_outlined,
+                    text: "ACADEMY",
+                    color: Colors.blue,
+                  ),
+                  HomeMenu(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => webachivepage(),
+                        ),
+                      );
+                    },
+                    icon: Icons.archive_outlined,
+                    text: " ARCHIVE",
+                    color: const Color.fromARGB(255, 165, 75, 75),
+                  ),
                 ],
               ),
             ),
@@ -181,7 +253,7 @@ class _HomePageState extends State<HomePage> {
                 );
               },
               icon: Icons.sports_tennis,
-              text: "ACTIVITIES",
+              text: "SPORTS",
               color: Colors.red,
             ),
 

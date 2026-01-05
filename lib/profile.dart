@@ -1,6 +1,7 @@
 import 'dart:convert';
 
-import 'package:calcutta_psapp/login.dart';
+
+import 'package:calcutta_psapp/otploginpage.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -57,7 +58,7 @@ class _ProfilePageState extends State<ProfilePage> {
           children: [
             Image.asset('lib/assets/images/cpsgts.png', height: 32),
             Text(
-              "Calcutta Police Sergeant's Institute",
+              "UNMESH CPSI & PAC",
               style: TextStyle(fontSize: 16, color: Colors.white),
             ),
             IconButton(
@@ -66,7 +67,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 prefs.clear();
                 Navigator.pushReplacement(
                   context,
-                  MaterialPageRoute(builder: (context) => LoginPage()),
+                  MaterialPageRoute(builder: (context) => sendotppage()),
                 );
               },
               icon: Icon(Icons.logout_outlined, color: Colors.red),
