@@ -61,6 +61,7 @@ final lng = hoteledetail?['lng']?.toString().trim();
       appBar: AppBar(
         backgroundColor: const Color(0xFF0D3B66),
         title: Text(widget.hotelName, style: TextStyle(color: Colors.white)),
+        iconTheme: IconThemeData(color: Colors.white),
       ),
       backgroundColor: Colors.grey.shade200,
       body: hoteledetail == null

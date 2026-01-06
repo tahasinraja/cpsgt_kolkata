@@ -45,6 +45,7 @@ class _gallerypageState extends State<gallerypage> {
         backgroundColor: const Color(0xFF0D3B66),
         title: Text('Gallery', style: TextStyle(color: Colors.white)),
         centerTitle: true,
+        iconTheme: IconThemeData(color: Colors.white),
       ),
 
       body: gallerylist == null

@@ -15,6 +15,7 @@ class _AnnoucmentpageState extends State<Annoucmentpage> {
         backgroundColor: const Color(0xFF0D3B66),
         title: Text('Announcements',style: TextStyle(fontSize: 16,color: Colors.white),
         ),centerTitle: true,
+        iconTheme: IconThemeData(color: Colors.white),
       ),
       body: Center(
   child: Card(

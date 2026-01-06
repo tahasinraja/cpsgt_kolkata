@@ -48,6 +48,7 @@ class _ActivityPageState extends State<ActivityPage> {
           style: TextStyle(color: Colors.white),
         ),
         centerTitle: true,
+        iconTheme: IconThemeData(color: Colors.white),
       ),
       body: Padding(
         padding: const EdgeInsets.all(12),

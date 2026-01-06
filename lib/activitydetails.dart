@@ -69,6 +69,7 @@ class _activitydetailsState extends State<activitydetails> {
           style: const TextStyle(color: Colors.white),
         ),
         centerTitle: true,
+        iconTheme: IconThemeData(color: Colors.white),
       ),
       body: activityDetails.isEmpty
           ? const Center(child: CircularProgressIndicator())

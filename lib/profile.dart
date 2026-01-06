@@ -1,10 +1,10 @@
 import 'dart:convert';
 
 
-import 'package:calcutta_psapp/otploginpage.dart';
+
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
+
 
 class ProfilePage extends StatefulWidget {
   final String phone;
@@ -51,31 +51,38 @@ class _ProfilePageState extends State<ProfilePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: const Color(0xFF0D3B66),
-        title: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Image.asset('lib/assets/images/cpsgts.png', height: 32),
-            Text(
-              "UNMESH CPSI & PAC",
-              style: TextStyle(fontSize: 16, color: Colors.white),
-            ),
-            IconButton(
-              onPressed: () async {
-                final prefs = await SharedPreferences.getInstance();
-                prefs.clear();
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(builder: (context) => sendotppage()),
-                );
-              },
-              icon: Icon(Icons.logout_outlined, color: Colors.red),
-            ),
-          ],
+        appBar: AppBar(
+  backgroundColor: const Color(0xFF0D3B66),
+  title: Row(
+    mainAxisAlignment: MainAxisAlignment.center,
+    children: [
+      Image.asset('lib/assets/images/cpsgts.png', height: 34),
+      const SizedBox(width: 8),
+      const Text(
+        "UNMESH CPSI & PAC",
+        maxLines: 2,
+        overflow: TextOverflow.ellipsis,
+        style: TextStyle(
+          fontSize: 16,
+          color: Colors.white,
+          fontWeight: FontWeight.w500,
         ),
-        centerTitle: true,
       ),
+    //  const Spacer(), 
+          // IconButton(
+          //     onPressed: () async {
+          //       final prefs = await SharedPreferences.getInstance();
+          //       prefs.clear();
+          //       Navigator.pushReplacement(
+          //         context,
+          //         MaterialPageRoute(builder: (context) => sendotppage()),
+          //       );
+          //     },
+          //     icon: Icon(Icons.logout_outlined, color: Colors.white),
+          //   ),// Left aur right balance ke liye
+    ],
+  ),
+),
       backgroundColor: Colors.grey.shade200,
 
       body: profile == null

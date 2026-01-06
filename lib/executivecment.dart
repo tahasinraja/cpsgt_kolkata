@@ -41,6 +41,7 @@ Widget build(BuildContext context) {
     appBar: AppBar(
       title: const Text("Executive Committee",style: TextStyle(color: Colors.white),),
       backgroundColor: const Color(0xFF0D3B66),
+      iconTheme: IconThemeData(color: Colors.white),
     ),
     body: executivelist.isEmpty
         ? const Center(child: CircularProgressIndicator())

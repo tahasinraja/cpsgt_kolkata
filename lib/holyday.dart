@@ -202,6 +202,7 @@ class _HolydayPageState extends State<HolydayPage> {
           style: TextStyle(color: Colors.white),
         ),
         backgroundColor: const Color(0xFF0D3B66),
+        iconTheme: IconThemeData(color: Colors.white),
       ),
       body: holydayplace.isEmpty
           ? const Center(child: CircularProgressIndicator())

@@ -16,6 +16,7 @@ class _imageviwerState extends State<imageviwer> {
       appBar: AppBar(
          backgroundColor: Colors.black,
         title: Text('View',style: TextStyle(color: Colors.white),),centerTitle: true,
+        iconTheme: IconThemeData(color: Colors.white),
       ),
       body: Center(
         child: InteractiveViewer(

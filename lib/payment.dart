@@ -12,6 +12,38 @@ class paymentpage extends StatefulWidget {
 }
 
 class _paymentpageState extends State<paymentpage> {
+Future<String> createOrder(int amount) async {
+  final uri = Uri.parse('https://api.razorpay.com/v1/orders');
+
+  // Basic Auth (Test mode)
+  String key = 'rzp_live_JlDOXuPCT5TpID';
+  String secret = 'i7tKY7Xtz8JngaV1k2eLj7U9';
+  String basicAuth = 'Basic ' + base64Encode(utf8.encode('$key:$secret'));
+
+  final res = await http.post(
+    uri,
+    headers: {
+      'Authorization': basicAuth,
+      'Content-Type': 'application/json'
+    },
+    body: jsonEncode({
+      'amount': amount * 100, // paise me
+      'currency': 'INR',
+      'receipt': 'rcpt_${DateTime.now().millisecondsSinceEpoch}'
+    }),
+  );
+
+  if (res.statusCode == 200 || res.statusCode == 201) {
+    final data = jsonDecode(res.body);
+    print("✅ Order created: $data");
+    return data['id']; // order_id
+  } else {
+    print("❌ Order creation failed: ${res.body}");
+    throw Exception("Order creation failed");
+  }
+}
+
+
   Map<String, dynamic>? paymentlist;
   late Razorpay _razorpay;
 
@@ -24,7 +56,7 @@ class _paymentpageState extends State<paymentpage> {
       final data = jsonDecode(res.body);
       setState(() => paymentlist = data['stock'][0]);
       print("💰 Paying amount: ${paymentlist!['due']} rupees");
-print("📝 User: ${paymentlist!['name']}, Phone: ${widget.phone}");
+print("📝 User: ${paymentlist!['name']}, Phone: ${widget.phone}, mem_id:${paymentlist!['mem_id']}");
 
     }
   }
@@ -32,14 +64,20 @@ print("📝 User: ${paymentlist!['name']}, Phone: ${widget.phone}");
   // ================= OPEN RAZORPAY =================
 
  // var orderId = "ORD_${DateTime.now().millisecondsSinceEpoch}";
-void openRazorpay(String orderId, int amount, String name, String email, String contact) {
+void openRazorpay(
+  String orderId,
+  int amount,
+  String name,
+  String email,
+  String contact,
+) {
   var options = {
-    'key':'rzp_live_JlDOXuPCT5TpID', // LIVE key
-    'amount': amount * 100, // rupees → paise
+    'key': 'rzp_live_JlDOXuPCT5TpID',
+    'amount': amount * 100,
     'currency': 'INR',
     'name': 'Calcutta Police Sergeant\'s Institute',
-    'description': 'Payment for Order #$orderId',
-   // 'order_id': orderId, // 🔥 MUST for server verification
+    'description': 'Membership Fee',
+    'order_id': orderId,
     'prefill': {
       'email': email,
       'contact': contact,
@@ -50,22 +88,27 @@ void openRazorpay(String orderId, int amount, String name, String email, String 
 }
 
 
+
+
   // ================= SUCCESS =================
-  void _handlePaymentSuccess(PaymentSuccessResponse response) {
-    updatePaymentStatus(
-      response.paymentId,
-      null,
-      response.signature,
-      "success",
-    );
-  print("Payment ID: ${response.paymentId}");
-  print("Order ID: ${response.orderId}");
-  print("Signature: ${response.signature}");
-  
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text("Payment Successful")),
-    );
-  }
+void _handlePaymentSuccess(PaymentSuccessResponse response) {
+  updatePaymentStatus(
+    response.paymentId!,
+    response.orderId!,
+    response.signature!,
+    "success",
+    
+  );
+    print("✅ PaymentId: ${response.paymentId}");
+  print("✅ OrderId: ${response.orderId}");
+  print("✅ Signature: ${response.signature}");
+
+  ScaffoldMessenger.of(context).showSnackBar(
+    const SnackBar(content: Text("Payment Successful")),
+  );
+}
+
+
 
   // ================= FAILED =================
   void _handlePaymentError(PaymentFailureResponse response) {
@@ -84,41 +127,29 @@ Future<void> updatePaymentStatus(
   String status,
 ) async {
   final uri = Uri.parse('https://cpsgtinst.org/app/payment_insert.php');
-  final body = jsonEncode({
-    'payment_id': paymentId,
+
+  // Form fields (not JSON)
+  final body = {
+    'payment_id': paymentId ?? '',
+    'order_id': orderId ?? '',
+    'signature': signature ?? '',
     'mem_id': paymentlist!['mem_id'],
-    'amount': paymentlist!['due'], // make sure this matches the server
+    'amount': paymentlist!['due'],
     'name': paymentlist!['name'],
     'ph': paymentlist!['ph'],
     'email': paymentlist!['email'] ?? '',
-    'status': status,
-    'order_id': orderId ?? 'NO_ORDER', // send something non-empty
-  });
+    'status': status, // must be "success"
+  };
 
-  print("🔹 Sending payment update to server:");
-  print("URL: $uri");
-  print("Body: $body");
+  final res = await http.post(
+    uri,
+    body: body, // ✅ plain form POST
+  );
 
-  try {
-    final res = await http.post(
-      uri,
-      headers: {'Content-Type': 'application/json'},
-      body: body,
-    );
-
-    print("🔹 Server response status: ${res.statusCode}");
-    print("🔹 Server response body: ${res.body}");
-
-    if (res.statusCode == 200) {
-      print("✅ Payment update successful!");
-      fetchAmount(); // refresh UI
-    } else {
-      print("❌ Payment update failed!");
-    }
-  } catch (e) {
-    print("⚠️ Error updating payment: $e");
-  }
+  print("⬅️ SERVER: ${res.body}");
 }
+
+
 
 
 
@@ -144,8 +175,10 @@ Future<void> updatePaymentStatus(
       appBar: AppBar(
         title: const Text("Payment Details",
             style: TextStyle(color: Colors.white)),
+
         backgroundColor: const Color(0xFF0D3B66),
         centerTitle: true,
+        iconTheme: IconThemeData(color: Colors.white),
       ),
       body: paymentlist == null
           ? const Center(child: CircularProgressIndicator())
@@ -161,6 +194,18 @@ Future<void> updatePaymentStatus(
                      
                       mainAxisSize: MainAxisSize.min,
                       children: [
+                        Chip(label: Column(
+children: [
+     const Text(
+                  "Payment Summary",
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+],
+                        )),
+                        SizedBox(height: 20,),
                         infoRow("Name", paymentlist!['name']),
                         infoRow("Member ID", paymentlist!['mem_id']),
                         infoRow("Phone", paymentlist!['ph']),
@@ -182,21 +227,41 @@ Future<void> updatePaymentStatus(
                               shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(30)),
                             ),
-                          onPressed: () {
-                  openRazorpay(
-                    "NO_ORDER", // or real orderId if generated from server
-                    int.parse(paymentlist!['due']), // amount
-                    paymentlist!['name'],           // name/description
-                    paymentlist!['email'] ?? '',    // email
-                    paymentlist!['ph'],             // contact
-                  );
-                },
+ onPressed: () async {
+  try {
+    int amount = int.parse(paymentlist!['due']);
+    String orderId = await createOrder(amount);
+
+    openRazorpay(
+      orderId,
+      amount,
+      paymentlist!['name'],
+      paymentlist!['email'] ?? '',
+      paymentlist!['ph'],
+    );
+  } catch (e) {
+    print("Error creating order: $e");
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text("Order creation failed")),
+    );
+  }
+},
+
+
                 
                             child: const Text("PAY NOW",
                                 style: TextStyle(
                                     color: Colors.white, fontSize: 16)),
                           ),
-                        )
+                        ),
+                          const SizedBox(height: 12),
+                  Text(
+                    "Secure payment via Razorpay",
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey.shade600,
+                    ),
+                  ),
                       ],
                     ),
                   ),

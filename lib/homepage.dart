@@ -65,7 +65,7 @@ class _HomePageState extends State<HomePage> {
                   MaterialPageRoute(builder: (context) => sendotppage()),
                 );
               },
-              icon: Icon(Icons.logout_outlined, color: Colors.red),
+              icon: Icon(Icons.logout_outlined, color: Colors.white),
             ),// Left aur right balance ke liye
     ],
   ),
@@ -152,10 +152,10 @@ class _HomePageState extends State<HomePage> {
                   ),
                   HomeMenu(
                     onTap: () {
-                      Navigator.push(
+                      Navigator.push( 
                         context,
                         MaterialPageRoute(
-                          builder: (context) =>
+                          builder: (context,) =>
                               paymentpage(phone: widget.phone),
                         ),
                       );

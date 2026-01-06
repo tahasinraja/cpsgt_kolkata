@@ -33,6 +33,7 @@ class _facilitespageState extends State<facilitespage> {
           ),
         ),
         centerTitle: true,
+        iconTheme: IconThemeData(color: Colors.white),
       ),
       body: Padding(
         padding: const EdgeInsets.all(8.0),
