@@ -12,9 +12,13 @@ class sendotppage extends StatefulWidget {
 }
 
 class _sendotppageState extends State<sendotppage> {
+  
+
   bool isLoading = false;
 
   final TextEditingController phonecontroller = TextEditingController();
+  final TextEditingController demoPasswordController = TextEditingController();
+
   String generateOtp() {
     final random = Random();
     return (1000 + random.nextInt(9000)).toString(); // 4 digit OTP
@@ -22,6 +26,17 @@ class _sendotppageState extends State<sendotppage> {
 
   Future<void> sendotp() async {
     final phone = phonecontroller.text.trim();
+      // 🔥 DEMO NUMBER FLOW
+  if (phone == '7870672231') {
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (context) =>
+            verifyotppage(phone: phone, otp: '123'),
+      ),
+    );
+    return; // ⛔ OTP / API yahin stop
+  }
     if (phone.isEmpty || phone.length != 10) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Enter valid 10 digit mobile number')),

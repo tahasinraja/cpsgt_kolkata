@@ -18,8 +18,11 @@ class _verifyotppageState extends State<verifyotppage> {
 
   Future<void> savelogin() async {
     final prefs = await SharedPreferences.getInstance();
+  
+  //  await prefs.setString('phone', widget.phone);
+     // ✅ YAHIN PHONE SAVE HOTA HAI
+  await prefs.setString('phone', widget.phone);
     await prefs.setBool('isLoggedIn', true);
-    await prefs.setString('phone', widget.phone);
   }
 
 
@@ -60,9 +63,25 @@ class _verifyotppageState extends State<verifyotppage> {
               ),
             ),
             const SizedBox(height: 20),
-            Center(child: Text('OTP Generated For:${widget.phone}')),
+          //  Center(child: Text('OTP Generated For:${widget.phone}')),
+          Center(
+  child: Text(
+    widget.phone == '7870672231'
+        ? 'Demo Login For: ${widget.phone}'
+        : 'OTP Generated For: ${widget.phone}',
+  ),
+),
+
             const SizedBox(height: 50),
-            Center(child: Text('Enter OTP')),
+            Center(
+  child: Text(
+    widget.phone == '7870672231'
+        ? 'Enter Demo Password'
+        : 'Enter OTP',
+  ),
+),
+
+          //  Center(child: Text('Enter OTP')),
             SizedBox(height: 15),
             // 🔷 INPUT FIELDS
             Padding(
@@ -71,7 +90,10 @@ class _verifyotppageState extends State<verifyotppage> {
                 children: [
                   PinCodeTextField(
                     appContext: context,
-                    length: 4,
+                  //  length: 4,
+
+                    length: widget.phone == '7870672231' ? 3 : 4,
+
                     controller: otpcontroller,
                     keyboardType: TextInputType.number,
                     // obscureText: true,
